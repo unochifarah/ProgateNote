@@ -4,10 +4,10 @@ import AddNote from '../src/screens/addNote';
 import EditNote from '../src/screens/editNote';
 
 const labelColors = {
-  urgent: '#D32F2F', // Red
-  notUrgent: '#388E3C', // Green
-  important: '#1976D2', // Blue
-  notImportant: '#FFC107', // Yellow
+  urgent: '#D32F2F',
+  notUrgent: '#388E3C',
+  important: '#1976D2',
+  notImportant: '#FFC107',
 };
 
 const CurrentPageWidget = ({ currentPage, noteList, setNoteList, setCurrentPage, addNote, editNote, deleteNote, setCurrentNote, currentNote, searchQuery, setSearchQuery, togglePin }) => {
@@ -30,7 +30,8 @@ const App = () => {
       id: 1,
       title: 'Note pertama',
       desc: 'Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry',
-      labels: ['urgent', 'important'], // Example labels
+      labels: ['urgent', 'important'],
+      pinned: false,  
     },
   ]);
 
@@ -56,9 +57,12 @@ const App = () => {
   };
 
   const togglePin = (id) => {
-    setNoteList(noteList.map(note => 
-      note.id === id ? {...note, pinned: !note.pinned} : note
-    ));
+    setNoteList(prevNoteList => {
+      const pinnedNotesCount = prevNoteList.filter(note => note.pinned).length;
+      return prevNoteList.map(note =>
+        note.id === id ? {...note, pinned: note.pinned ? !note.pinned : (pinnedNotesCount < 3 ? true : note.pinned)} : note
+      ).sort((a, b) => b.pinned - a.pinned);
+    });
   };
 
   return (

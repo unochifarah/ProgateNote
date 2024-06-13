@@ -20,9 +20,7 @@ const AddNote = ({ setCurrentPage, addNote, labelColors }) => {
   };
 
   const handleSubmit = () => {
-    // Check if title or description is empty
     if (!title.trim() && !desc.trim()) {
-      // Simply return without doing anything
       return;
     }
   

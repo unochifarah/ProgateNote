@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { FlatList, StyleSheet, View, Text, Modal, TextInput, TouchableOpacity } from 'react-native';
 import CustomButton from '../components/customButton';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import moment from 'moment';
 
 const labelColors = {
   urgent: '#D32F2F', // Red
@@ -10,7 +11,7 @@ const labelColors = {
   notImportant: '#FFC107', // Yellow
 };
 
-const NoteCard = ({ item, setDeleteNoteId, setCurrentNote, labelColors, togglePin, pinnedNotesCount }) => (
+const NoteCard = ({ item, setDeleteNoteId, setCurrentNote, labelColors, togglePin }) => (
   <View style={styles.card}>
     <TouchableOpacity style={styles.pinButton} onPress={() => togglePin(item.id)}>
       <Icon name={item.pinned ? "thumb-tack" : "thumb-tack"} size={20} color={item.pinned ? "#D82148" : "#ccc"} />
@@ -24,6 +25,7 @@ const NoteCard = ({ item, setDeleteNoteId, setCurrentNote, labelColors, togglePi
     </View>
     <Text style={styles.cardTitle}>{item.title}</Text>
     <Text style={styles.cardDesc}>{item.desc}</Text>
+    <Text style={styles.lastEdited}>Last edited: {moment(item.lastEdited).format('LLL')}</Text>
     <View style={styles.buttons}>
       <CustomButton
         backgroundColor="#FFC300"
@@ -69,9 +71,7 @@ const Home = ({ noteList, setNoteList, setCurrentPage, deleteNote, setCurrentNot
   );
 
   const handleSubmit = () => {
-    // Check if title or description is empty
     if (!title.trim() && !desc.trim()) {
-      // Simply return without doing anything
       return;
     }
 
@@ -82,21 +82,22 @@ const Home = ({ noteList, setNoteList, setCurrentPage, deleteNote, setCurrentNot
       labels: selectedLabels,
     });
 
-    // Clear fields after submission
     setTitle('');
     setDesc('');
     setSelectedLabels([]);
 
-    // Navigate back to home or perform other actions
     setCurrentPage('home');
   };
 
   const togglePin = (id) => {
-    const pinnedNotesCount = noteList.filter(note => note.pinned).length;
-    setNoteList(noteList.map(note => 
-      note.id === id ? {...note, pinned: note.pinned ? !note.pinned : (pinnedNotesCount < 3 ? true : note.pinned)} : note
-    ));
+    setNoteList(prevNoteList => {
+      const pinnedNotesCount = prevNoteList.filter(note => note.pinned).length;
+      return prevNoteList.map(note =>
+        note.id === id ? {...note, pinned: note.pinned ? !note.pinned : (pinnedNotesCount < 3 ? true : note.pinned)} : note
+      ).sort((a, b) => b.pinned - a.pinned);
+    });
   };
+  
 
   return (
     <View style={styles.container}>
@@ -118,7 +119,7 @@ const Home = ({ noteList, setNoteList, setCurrentPage, deleteNote, setCurrentNot
       />
       <FlatList
         showsVerticalScrollIndicator={false}
-        data={filteredNotes}
+        data={filteredNotes.sort((a, b) => b.pinned - a.pinned)}
         renderItem={({ item }) => (
           <NoteCard
             item={item}
@@ -131,7 +132,6 @@ const Home = ({ noteList, setNoteList, setCurrentPage, deleteNote, setCurrentNot
             }}
             labelColors={labelColors}
             togglePin={togglePin}
-            pinnedNotesCount={noteList.filter(note => note.pinned).length}
           />
         )}
         keyExtractor={item => item.id.toString()}
@@ -165,7 +165,6 @@ const Home = ({ noteList, setNoteList, setCurrentPage, deleteNote, setCurrentNot
         </View>
       </Modal>
 
-      {/* Add Note Modal or Section */}
       {setCurrentPage === 'add' && (
         <View style={styles.addNoteContainer}>
           <TextInput
@@ -180,7 +179,6 @@ const Home = ({ noteList, setNoteList, setCurrentPage, deleteNote, setCurrentNot
             value={desc}
             onChangeText={setDesc}
           />
-          {/* Add logic for selecting labels if needed */}
           <CustomButton
             backgroundColor="#4CAF50"
             color="#fff"
@@ -221,7 +219,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 2,
     elevation: 3,
-    position: 'relative', // to position the pin button
+    position: 'relative',
   },
   pinButton: {
     position: 'absolute',
@@ -231,14 +229,14 @@ const styles = StyleSheet.create({
   labelContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginBottom: 10, // Add some margin at the bottom for spacing
+    marginBottom: 10,
   },
   label: {
     paddingVertical: 2,
     paddingHorizontal: 10,
     borderRadius: 5,
-    marginRight: 5, // Add some margin between labels
-    marginBottom: 5, // Add some margin between rows of labels
+    marginRight: 5,
+    marginBottom: 5,
   },
   labelText: {
     color: '#fff',
@@ -273,7 +271,11 @@ const styles = StyleSheet.create({
     padding: 20,
     backgroundColor: '#fff',
     borderRadius: 8,
-    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
   },
   modalTitle: {
     fontSize: 18,
@@ -281,19 +283,17 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   modalText: {
-    fontSize: 14,
+    fontSize: 16,
     marginBottom: 20,
-    textAlign: 'center',
   },
   modalButtons: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '100%',
+    justifyContent: 'flex-end',
   },
   modalButton: {
-    paddingVertical: 10,
-    paddingHorizontal: 20,
+    padding: 10,
     borderRadius: 5,
+    marginHorizontal: 5,
   },
   cancelButton: {
     backgroundColor: '#ccc',
@@ -305,8 +305,21 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
   },
+  noteCount: {
+    marginBottom: 10,
+    fontSize: 16,
+    color: '#555',
+  },
   addNoteContainer: {
-    // Add styles for the add note section/modal if needed
+    padding: 20,
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
+    marginBottom: 20,
   },
   input: {
     height: 40,
@@ -316,12 +329,6 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     paddingHorizontal: 10,
     backgroundColor: '#fff',
-  },
-  noteCount: {
-    fontWeight: '700',
-    color: '#203239',
-    fontSize: 16,
-    marginBottom: 10,
   },
 });
 
