@@ -11,7 +11,12 @@ const labelColors = {
   notImportant: '#FFC107', // Yellow
 };
 
-const NoteCard = ({ item, setDeleteNoteId, setCurrentNote, labelColors, togglePin }) => (
+const NoteCard = ({ item, setDeleteNoteId, setCurrentNote, labelColors, togglePin }) => {
+  const wordCount = item.desc.split(/\s+/).length;
+  const descriptionLines = item.desc.split('\n');
+  const limitedDescription = descriptionLines.slice(0, 3).join('\n');
+
+  return (
   <View style={styles.card}>
     <TouchableOpacity style={styles.pinButton} onPress={() => togglePin(item.id)}>
       <Icon name={item.pinned ? "thumb-tack" : "thumb-tack"} size={20} color={item.pinned ? "#D82148" : "#ccc"} />
@@ -25,6 +30,8 @@ const NoteCard = ({ item, setDeleteNoteId, setCurrentNote, labelColors, togglePi
     </View>
     <Text style={styles.cardTitle}>{item.title}</Text>
     <Text style={styles.cardDesc}>{item.desc}</Text>
+    <Text style={styles.cardDesc}>{limitedDescription}{descriptionLines.length > 3 ? '...' : ''}</Text>
+    <Text style={styles.wordCount}>Word count: {wordCount}</Text>
     <Text style={styles.lastEdited}>Last edited: {moment(item.lastEdited).format('LLL')}</Text>
     <View style={styles.buttons}>
       <CustomButton
@@ -50,6 +57,8 @@ const NoteCard = ({ item, setDeleteNoteId, setCurrentNote, labelColors, togglePi
     </View>
   </View>
 );
+}
+
 
 const Home = ({ noteList, setNoteList, setCurrentPage, deleteNote, setCurrentNote, searchQuery, setSearchQuery }) => {
   const [isModalVisible, setModalVisible] = useState(false);
@@ -252,6 +261,9 @@ const styles = StyleSheet.create({
     color: '#555',
     fontSize: 14,
     marginBottom: 15,
+    maxHeight: 60,
+    overflow: 'hidden',
+    lineHeight: 20,
   },
   buttons: {
     flexDirection: 'row',
