@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FlatList, StyleSheet, View, Text, Modal, TextInput, TouchableOpacity } from 'react-native';
+import { FlatList, StyleSheet, View, Text, Modal, TextInput, TouchableOpacity, StatusBar } from 'react-native';
 import CustomButton from '../components/customButton';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import moment from 'moment';
@@ -110,6 +110,8 @@ const Home = ({ noteList, setNoteList, setCurrentPage, deleteNote, setCurrentNot
 
   return (
     <View style={styles.container}>
+      <Text style={styles.title}>Notepad App - DEMO by Jasmine Unochi</Text>
+      <StatusBar backgroundColor="#4CAF50" />
       <TextInput
         style={styles.searchBar}
         placeholder="Cari notes..."
@@ -341,6 +343,12 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     paddingHorizontal: 10,
     backgroundColor: '#fff',
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginVertical: 20,
   },
 });
 
